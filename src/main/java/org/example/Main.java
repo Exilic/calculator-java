@@ -1,16 +1,19 @@
 package org.example;
 
-import java.util.InputMismatchException;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Scanner;
+import java.util.regex.*;
 
 public class Main {
+
+    private static Scanner scanner = new Scanner(System.in);
     public static void main(String[] args)
     {
         Boolean continueCalculate = true;
         while(continueCalculate){
             String actionChoice = getActionChoice();
-            if(actionChoice != "x") {
+            if(!Objects.equals(actionChoice, "q")) {
                 performAction(actionChoice);
             } else {
                 continueCalculate = false;
@@ -20,17 +23,15 @@ public class Main {
 
     public static String getActionChoice(){
         presentActionBanner();
-        Scanner scanner = new Scanner(System.in);
-        String actionChoice = scanner.nextLine();
-        if(isChoiceQualityBad(actionChoice)) {
-            System.out.println("Unfortunate choice. Try again");
-            getActionChoice();
-        }
+        String actionChoice;
+        do {
+            actionChoice = scanner.next();
+        } while (isChoiceQualityGood(actionChoice) == false);
         return actionChoice;
     }
 
     public static void presentActionBanner() {
-        String[][] choices = {{"+","Add"},{"-","Subtract"},{"*","Multiply"},{"/","Divide"},{"x","Exit"}};
+        String[][] choices = {{"+","Add"},{"-","Subtract"},{"*","Multiply"},{"/","Divide"},{"q","Quit"}};
         for(String[] choice : choices){
             System.out.print("\u001B[41m \u001B[30m" + choice[0] + "\u001B[37m \u001B[0m");
             System.out.print(" " + choice[1] + "  ");
@@ -38,19 +39,22 @@ public class Main {
         System.out.println("");
     }
 
-    public static Boolean isChoiceQualityBad(String actionChoice) {
-        return false;
+    public static Boolean isChoiceQualityGood(String actionChoice) {
+        return Pattern.matches("[\\Q+-*/\\EqQ]", actionChoice);
     }
     public static void performAction(String actionChoice){
-        Scanner scanner = new Scanner(System.in);
-
-
-        double numberOne = scanner.nextDouble();
-        double numberTwo = scanner.nextDouble();
-        String operatorChosen = scanner.next();
+        double numberOne = getDouble();
+        double numberTwo = getDouble();
         double result = 0;
         Boolean divisionByZero = false;
-        switch(operatorChosen) {
+        switch(actionChoice) {
+            case "+":
+
+                result = addition(numberOne, numberTwo);
+                break;
+            case "-":
+                result = subtraction(numberOne, numberTwo);
+                break;
             case "*":
                 result = multiplication(numberOne, numberTwo);
                 break;
@@ -101,23 +105,37 @@ public class Main {
         return numberOne * numberTwo;
     }
 
-    public static String[] getOperatorMenuData() {
-        String[] menuData = {"Indicate which operation to use: \n", "1. Addition\n", "2. Subtraction\n", "3. Multiplication\n", "4. Division\n"};
-        return menuData;
+    public static Double getDouble() {
+        System.out.println("Enter a number: ");
+        String entry = "";
+        Boolean invalidNumber = true;
+        do {
+            entry = scanner.next();
+            if(Pattern.matches("[0-9\\Q.,\\E]*",  entry)) {
+                invalidNumber = false;
+            } else {
+                System.out.println("Number not valid. Please enter a valid number:");
+            }
+        } while (invalidNumber);
+        Double number = Double.parseDouble(entry);
+        return number;
     }
 
-    public static String[] getNumbersMenuData() {
-        String[] menuData = {"Enter the first number: ", "Enter the second number: "};
-        return menuData;
-    }
+    public static Double[] enterMoreNumbers(Double numberOne, Double numberTwo) {
+        System.out.println("Enter more numbers? (y/n)");
+        String response = scanner.next();
+        ArrayList<Double> moreNumbers = new ArrayList<Double>();
+        if(Objects.equals(response, "y")){
+            moreNumbers.add(numberOne);
+            moreNumbers.add(numberTwo);
+            Boolean continueEntering = true;
+            do {
+                System.out.println("Enter a new number (stop by hitting enter on an empty line): ");
 
-    public static Double getDouble(Scanner scanner) {
-        try {
-            double numberOne = scanner.nextDouble();
-        } catch (InputMismatchException e) {
-            System.out.println("Just use numbers and .\n");
-            getDouble(scanner);
+            } while (continueEntering);
         }
-        return 333.44;
+        //Double[] moreNumbers = new Double[2];
+        return moreNumbers;
+
     }
 }
