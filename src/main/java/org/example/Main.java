@@ -1,16 +1,17 @@
 package org.example;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.regex.*;
 
 public class Main {
 
-    private static Scanner scanner = new Scanner(System.in);
+    final private static Scanner scanner = new Scanner(System.in);
     public static void main(String[] args)
     {
-        Boolean continueCalculate = true;
+        boolean continueCalculate = true;
         while(continueCalculate){
             String actionChoice = getActionChoice();
             if(!Objects.equals(actionChoice, "q")) {
@@ -25,8 +26,8 @@ public class Main {
         presentActionBanner();
         String actionChoice;
         do {
-            actionChoice = scanner.next();
-        } while (isChoiceQualityGood(actionChoice) == false);
+            actionChoice = scanner.nextLine();
+        } while (!isChoiceQualityGood(actionChoice));
         return actionChoice;
     }
 
@@ -36,38 +37,44 @@ public class Main {
             System.out.print("\u001B[41m \u001B[30m" + choice[0] + "\u001B[37m \u001B[0m");
             System.out.print(" " + choice[1] + "  ");
         }
-        System.out.println("");
+        System.out.println();
     }
 
     public static Boolean isChoiceQualityGood(String actionChoice) {
         return Pattern.matches("[\\Q+-*/\\EqQ]", actionChoice);
     }
     public static void performAction(String actionChoice){
-        double numberOne = getDouble();
-        double numberTwo = getDouble();
+        Double[] numbers = getCorrectNumbers();
         double result = 0;
-        Boolean divisionByZero = false;
+        boolean divisionByZero = false;
         switch(actionChoice) {
             case "+":
-
-                result = addition(numberOne, numberTwo);
+                if(numbers.length > 2){
+                    result = addition(numbers);
+                } else {
+                    result = addition(numbers[0], numbers[1]);
+                }
                 break;
             case "-":
-                result = subtraction(numberOne, numberTwo);
+                if(numbers.length > 2){
+                    result = subtraction(numbers);
+                } else {
+                    result = subtraction(numbers[0], numbers[1]);
+                }
                 break;
             case "*":
-                result = multiplication(numberOne, numberTwo);
+                result = multiplication(numbers[0], numbers[1]);
                 break;
             case "/":
-                if(numberTwo != 0){
-                    result = division(numberOne, numberTwo);
+                if(numbers[1] != 0){
+                    result = division(numbers[0], numbers[1]);
                 } else {
                     divisionByZero = true;
                 }
                 break;
         }
         if(!divisionByZero){
-            System.out.println(String.format("The calculated result is %f", result));
+            System.out.printf("The calculated result is %f%n", result);
         } else {
             System.out.println("Division by zero will not give a meaningful result");
         }
@@ -77,7 +84,7 @@ public class Main {
         return numberOne + numberTwo;
     }
 
-    public static double addition(double[] numbers){
+    public static double addition(Double[] numbers){
         double result = 0;
         for (double number : numbers) {
             result += number;
@@ -89,7 +96,7 @@ public class Main {
         return numberOne - numberTwo;
     }
 
-    public static double subtraction(double[] numbers){
+    public static double subtraction(Double[] numbers){
         double result = numbers[0];
         for(int i = 1; i < numbers.length; i++){
             result -= numbers[i];
@@ -105,37 +112,32 @@ public class Main {
         return numberOne * numberTwo;
     }
 
-    public static Double getDouble() {
-        System.out.println("Enter a number: ");
-        String entry = "";
-        Boolean invalidNumber = true;
+    public static Double[] getCorrectNumbers() {
+        boolean incorrectNumbers;
+        List<Double> numbers = new ArrayList<>();
         do {
-            entry = scanner.next();
-            if(Pattern.matches("[0-9\\Q.,\\E]*",  entry)) {
-                invalidNumber = false;
-            } else {
-                System.out.println("Number not valid. Please enter a valid number:");
+            incorrectNumbers = false;
+            numbers.clear();
+            System.out.println("Enter the two numbers separated by a space (further numbers for adding and subtracting possible): ");
+            String userEntry = scanner.nextLine();
+            String[] userEntries = userEntry.split(" ", 0);
+            double number;
+            for (String entry : userEntries) {
+                try {
+                    number = Double.parseDouble(entry);
+                    numbers.add(number);
+                } catch (NumberFormatException e) {
+                    System.out.println("The numbers were not properly entered. Please try again");
+                    incorrectNumbers = true;
+                    break;
+                }
             }
-        } while (invalidNumber);
-        Double number = Double.parseDouble(entry);
-        return number;
-    }
-
-    public static Double[] enterMoreNumbers(Double numberOne, Double numberTwo) {
-        System.out.println("Enter more numbers? (y/n)");
-        String response = scanner.next();
-        ArrayList<Double> moreNumbers = new ArrayList<Double>();
-        if(Objects.equals(response, "y")){
-            moreNumbers.add(numberOne);
-            moreNumbers.add(numberTwo);
-            Boolean continueEntering = true;
-            do {
-                System.out.println("Enter a new number (stop by hitting enter on an empty line): ");
-
-            } while (continueEntering);
-        }
-        //Double[] moreNumbers = new Double[2];
-        return moreNumbers;
-
+            if(numbers.size() < 2) {
+                incorrectNumbers = true;
+            }
+        } while (incorrectNumbers);
+        Double[] correctNumbers = new Double[numbers.size()];
+        correctNumbers = numbers.toArray(correctNumbers);
+        return correctNumbers;
     }
 }
